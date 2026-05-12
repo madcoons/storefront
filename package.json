@@ -1,0 +1,15 @@
+{
+  "name": "storefront-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:shop-a": "npm --workspace shop-a run dev",
+    "dev:shop-b": "npm --workspace shop-b run dev",
+    "build:shop-a": "npm --workspace shop-a run build",
+    "build:shop-b": "npm --workspace shop-b run build"
+  }
+}
