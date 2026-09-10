@@ -4,7 +4,8 @@ import { fetchPublication, type PublicationMeta, type StorePublicationDto } from
 const { data: store, error } = await useStore()
 const { data: publications } = await usePublications()
 const { addItem, openCart } = useCart()
-const { damBaseUrl, storeSlug } = useRuntimeConfig().public
+const { track } = usePinterestTag()
+const { damBaseUrl, storeSlug, pinterestFeedCurrency } = useRuntimeConfig().public
 
 function parseMeta(raw: string): PublicationMeta {
   return JSON.parse(raw)
@@ -32,6 +33,7 @@ async function quickAdd(pub: StorePublicationDto, e: Event) {
     if (!detail?.items?.length) { await navigateTo(`/product/${pub.id}`); return }
     if (detail.items.length > 1) { await navigateTo(`/product/${pub.id}`); return }
     const variant = detail.items[0]
+    if (!variant) { await navigateTo(`/product/${pub.id}`); return }
     const meta = parseMeta(pub.metaValues)
     addItem({
       variantId: variant.id,
@@ -45,6 +47,11 @@ async function quickAdd(pub: StorePublicationDto, e: Event) {
       imageUrl: pub.imageUuid ? imageUrl(pub.imageUuid) : null,
       isDigital: pub.isDigital,
       attributesSummary: '',
+    })
+    track('addtocart', {
+      value: variant.price,
+      currency: pinterestFeedCurrency,
+      product_id: String(pub.id),
     })
     openCart()
   } finally {

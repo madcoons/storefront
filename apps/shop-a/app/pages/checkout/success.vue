@@ -1,6 +1,15 @@
 <script setup lang="ts">
-const { clearCart } = useCart()
-onMounted(() => { clearCart() })
+const { totalAmount, clearCart } = useCart()
+const { track } = usePinterestTag()
+const { pinterestFeedCurrency } = useRuntimeConfig().public
+
+onMounted(() => {
+  const value = totalAmount.value
+  if (value > 0) {
+    track('checkout', { value, currency: pinterestFeedCurrency })
+  }
+  clearCart()
+})
 </script>
 
 <template>

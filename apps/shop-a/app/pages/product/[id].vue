@@ -3,7 +3,7 @@ import type { PublicationMeta, PublicationVariantDto } from '@storefront/dam-cli
 
 const route = useRoute()
 const productId = Number(route.params.id)
-const { damBaseUrl } = useRuntimeConfig().public
+const { damBaseUrl, pinterestFeedCurrency } = useRuntimeConfig().public
 const { data: product, error } = await usePublication(productId)
 
 const meta = computed<PublicationMeta | null>(() => {
@@ -28,8 +28,9 @@ const optionChoices = computed(() => {
 watch(optionChoices, (choices) => {
   const sel: Record<string, string> = {}
   for (const choice of choices) {
-    if (choice.values.length > 0 && !optionSelections.value[choice.code]) {
-      sel[choice.code] = choice.values[0]
+    const first = choice.values[0]
+    if (first !== undefined && !optionSelections.value[choice.code]) {
+      sel[choice.code] = first
     }
   }
   if (Object.keys(sel).length) {
@@ -62,6 +63,7 @@ function attributeSummary(variant: PublicationVariantDto): string {
 }
 
 const { addItem, openCart } = useCart()
+const { track } = usePinterestTag()
 
 function addToCart() {
   if (!selectedVariant.value || !product.value || !meta.value) return
@@ -81,8 +83,39 @@ function addToCart() {
       attributesSummary: attributeSummary(variant),
     })
   }
+  track('addtocart', {
+    value: variant.price * qty.value,
+    currency: pinterestFeedCurrency,
+    product_id: String(product.value.id),
+  })
   openCart()
 }
+
+// Rich Pins: Open Graph product metadata for Pinterest.
+useSeoMeta({
+  ogTitle: () => meta.value?.title,
+  ogDescription: () => meta.value?.description,
+  ogImage: () => images.value[0]?.url,
+})
+useHead({
+  meta: [
+    { property: 'og:type', content: 'product' },
+    {
+      property: 'product:price:amount',
+      content: () => (selectedVariant.value?.price ?? meta.value?.minPrice)?.toFixed(2),
+    },
+    { property: 'product:price:currency', content: pinterestFeedCurrency },
+    {
+      property: 'og:availability',
+      content: () =>
+        product.value
+          ? product.value.isDigital || meta.value?.isSelfFulfilling || (meta.value?.quantity ?? 0) > 0
+            ? 'in stock'
+            : 'out of stock'
+          : undefined,
+    },
+  ],
+})
 </script>
 
 <template>

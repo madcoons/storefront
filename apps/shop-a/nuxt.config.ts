@@ -10,6 +10,9 @@ export default defineNuxtConfig({
     public: {
       storeSlug: '',
       damBaseUrl: 'https://localhost:8443',
+      siteUrl: '',
+      pinterestTagId: '',
+      pinterestFeedCurrency: 'USD',
     },
   },
   app: {
