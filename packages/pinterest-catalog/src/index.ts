@@ -54,8 +54,8 @@ export function mapPublicationToFeedItem(
   const imageUuid = publication.imageUuid ?? meta.primaryFile?.uuid ?? null
   if (!imageUuid) return null
 
-  const inStock = publication.isDigital || meta.isSelfFulfilling || meta.quantity > 0
-  const productType = meta.tags.length ? meta.tags.join(' > ') : null
+  const inStock = publication.isDigital || meta.isSelfFulfilling || (meta.quantity ?? 0) > 0
+  const productType = meta.tags?.length ? meta.tags.join(' > ') : null
 
   return {
     id: String(publication.id),
